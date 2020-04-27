@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mario.blog.mapper.ReplyMapper">
+
+	<resultMap id="replyResultMap" type="ReplyVO">
+		<id property="id" column="id" /><!-- 主键列 -->
+		<result property="content" column="content" />
+		<result property="cardId" column="card_id" />
+		<result property="authorId" column="author_id" />
+		<result property="authorName" column="author_name" />
+		<result property="replyId" column="reply_id" />
+		<result property="createTime" column="create_time" />
+	</resultMap>
+
+	<insert id="saveReply"  useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="ReplyVO">
+		insert into reply (content, card_id, author_id,author_name,reply_id,create_time)
+		values(#{content}, #{cardId}, #{authorId},#{authorName},#{replyId},#{createTime})
+	</insert>
+
+	<select id="queryReplyListById"  resultMap="replyResultMap">
+		select * from reply where card_id = #{0}
+	</select>
+
+	<select id="countReply" parameterType="String" resultType="_int">
+		select COUNT(*) from reply where card_id = #{cardId}
+	</select>
+
+</mapper>

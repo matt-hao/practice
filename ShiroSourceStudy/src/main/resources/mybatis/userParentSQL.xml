@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shiro.source.study.dao.impl.UserParentDaoImpl">
+
+    <resultMap id="userResultMap" type="User">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="account" column="account"/>
+        <result property="password" column="password"/>
+        <result property="salt" column="salt"/>
+        <collection property="roles" ofType="Role" columnPrefix="role_" autoMapping="true"
+                    resultMap="com.shiro.source.study.dao.impl.RoleDaoImpl.roleResultMap"/>
+    </resultMap>
+</mapper>

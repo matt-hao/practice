@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html class="theme theme-white">
+<head>
+<meta charset="utf-8">
+<title>TCC-TRANSACTION</title>
+<link href="https://www.zybuluo.com/static/assets/template-theme-white.css" rel="stylesheet" media="screen">
+<style type="text/css">
+
+#wmd-preview h1  {
+    color: #0077bb; /* 将标题改为蓝色 */
+}</style>
+</head>
+<body class="theme theme-white">
+<div id="wmd-preview" class="wmd-preview wmd-preview-full-reader"><div class="md-section-divider"></div><div class="md-section-divider"></div><h1 data-anchor-id="zz5j" id="tcc-transaction">TCC-TRANSACTION</h1><p data-anchor-id="jdvk"><code>分布式</code> <code>事务</code></p><div class="md-section-divider"></div><hr><div class="md-section-divider"></div><h2 data-anchor-id="yj0h" id="tcc是什么">TCC是什么</h2><p data-anchor-id="8w29">TCC是分布式事物实现的一种方式，TCC代表着实现分布式事物的三个步骤:TRY(预留)、CANCEL(取消)、COMFIRM(确认)</p><ul data-anchor-id="wwfx">
+<li>TRYING 阶段主要是对业务系统做检测及资源预留</li>
+<li>CONFIRMING 阶段主要是对业务系统做确认提交，TRYING阶段执行成功并开始执行CONFIRMING阶段时，默认CONFIRM ING阶段是不会出错的。即：只要TRYING成功，CONFIRMING一定成功。</li>
+<li>CANCELING 阶段主要是在业务执行错误，需要回滚的状态下执行的业务取消，预留资源释放</li>
+</ul><p data-anchor-id="13fk">举个支付项目的例子： <br>
+支付系统接收到会员的支付请求后，需要扣减会员账户余额、增加会员积分（暂时假设需要同步实现）增加商户账户余额 <br>
+再假设：会员系统、商户系统、积分系统是独立的三个子系统，无法通过传统的事务方式进行处理。 <br>
+TRYING阶段：我们需要做的就是会员资金账户的资金预留，即：冻结会员账户的金额（订单金额） <br>
+CONFIRMING阶段：我们需要做的就是会员积分账户增加积分余额，商户账户增加账户余额 <br>
+CANCELING阶段：该阶段需要执行的就是解冻释放我们扣减的会员余额 <br>
+以上所有的操作需要满足幂等性，幂等性的实现方式可以是： <br>
+1、通过唯一键值做处理，即每次调用的时候传入唯一键值，通过唯一键值判断业务是否被操作，如果已被操作，则不再重复操作 <br>
+2、通过状态机处理，给业务数据设置状态，通过业务状态判断是否需要重复执行</p><blockquote data-anchor-id="unq9" class="white-blockquote">
+  <p><i class="icon-lightbulb icon-2x"></i>以上摘自<a href="https://www.zhihu.com/question/21612832/answer/111882191" target="_blank">https://www.zhihu.com/question/21612832/answer/111882191</a> <br>
+  作者：不一 <br>
+  来源：知乎</p>
+</blockquote><div class="md-section-divider"></div><h2 data-anchor-id="g4a7" id="tcc-transaction-1">TCC-TRANSACTION</h2><p data-anchor-id="oubk">TCC-TRANSACTION是github上名为changmingxie所写的一个框架，项目fork地址为<a href="https://github.com/changmingxie/tcc-transaction" target="_blank">https://github.com/changmingxie/tcc-transaction</a>，该框架主要利用AOP和反射对TCC这个过程做了一个封装，便于我们实现TCC这个概念完成相应的业务</p><div class="md-section-divider"></div><h2 data-anchor-id="mq3c" id="tcc-transaction模型">TCC-TRANSACTION模型</h2><p data-anchor-id="sc20">changmingxie所写的框架里有相关的以订单、红包、资金三个模块，相关的介绍地址为<a href="https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97" target="_blank">https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97</a>，该介绍很详细，这里我就不重复造轮子。</p><p data-anchor-id="94o0">chengmingxie所写的demo概括为订单、红包、资金三个模块： <br>
+<img src="http://static.zybuluo.com/mario1412/4df1fcqerxkdepa0ww5soism/tcc-demo-origin.png" alt="tcc-demo-origin.png-4.8kB"></p><p data-anchor-id="q0nx">详细实例代码为:</p><div class="md-section-divider"></div><pre class="prettyprint linenums prettyprinted" data-anchor-id="n41n"><ol class="linenums"><li class="L0"><code class="language-java"><span class="pln"> </span><span class="lit">@Compensable</span><span class="pun">(</span><span class="pln">confirmMethod </span><span class="pun">=</span><span class="pln"> </span><span class="str">"confirmMakePayment"</span><span class="pun">,</span><span class="pln"> cancelMethod </span><span class="pun">=</span><span class="pln"> </span><span class="str">"cancelMakePayment"</span><span class="pun">)</span></code></li><li class="L1"><code class="language-java"><span class="pln">    </span><span class="kwd">public</span><span class="pln"> </span><span class="kwd">void</span><span class="pln"> makePayment</span><span class="pun">(</span><span class="typ">Order</span><span class="pln"> order</span><span class="pun">,</span><span class="pln"> </span><span class="typ">BigDecimal</span><span class="pln"> redPacketPayAmount</span><span class="pun">,</span><span class="pln"> </span><span class="typ">BigDecimal</span><span class="pln"> capitalPayAmount</span><span class="pun">)</span><span class="pln"> </span><span class="pun">{</span></code></li><li class="L2"><code class="language-java"><span class="pln">        </span><span class="typ">System</span><span class="pun">.</span><span class="pln">out</span><span class="pun">.</span><span class="pln">println</span><span class="pun">(</span><span class="str">"order try make payment called"</span><span class="pun">);</span></code></li><li class="L3"><code class="language-java"></code></li><li class="L4"><code class="language-java"><span class="pln">        order</span><span class="pun">.</span><span class="pln">pay</span><span class="pun">(</span><span class="pln">redPacketPayAmount</span><span class="pun">,</span><span class="pln"> capitalPayAmount</span><span class="pun">);</span></code></li><li class="L5"><code class="language-java"><span class="pln">        orderRepository</span><span class="pun">.</span><span class="pln">updateOrder</span><span class="pun">(</span><span class="pln">order</span><span class="pun">);</span></code></li><li class="L6"><code class="language-java"></code></li><li class="L7"><code class="language-java"><span class="pln">        </span><span class="typ">String</span><span class="pln"> result </span><span class="pun">=</span><span class="pln"> capitalTradeOrderService</span><span class="pun">.</span><span class="pln">record</span><span class="pun">(</span><span class="kwd">null</span><span class="pun">,</span><span class="pln"> buildCapitalTradeOrderDto</span><span class="pun">(</span><span class="pln">order</span><span class="pun">));</span></code></li><li class="L8"><code class="language-java"><span class="pln">        </span><span class="typ">String</span><span class="pln"> result2 </span><span class="pun">=</span><span class="pln"> redPacketTradeOrderService</span><span class="pun">.</span><span class="pln">record</span><span class="pun">(</span><span class="kwd">null</span><span class="pun">,</span><span class="pln"> buildRedPacketTradeOrderDto</span><span class="pun">(</span><span class="pln">order</span><span class="pun">));</span></code></li><li class="L9"><code class="language-java"><span class="pln">    </span><span class="pun">}</span></code></li></ol></pre><p data-anchor-id="sgzw">其中在order的service中调用了capital的service，然后再调用redpacket的service。capital和redpacket为同级关系。详细的代码请看chengmingxie的项目里sample实例</p><p data-anchor-id="3u88">下面是我自己写的demo： <br>
+项目地址为:<a href="https://github.com/Mario1412/dubbo-tcc-example" target="_blank">https://github.com/Mario1412/dubbo-tcc-example</a> <br>
+该实例也是分为三个模块:订单、订单项、库存 <br>
+<img src="http://static.zybuluo.com/mario1412/bvbxiekah3hby4em1977hueb/tcc-order-demo.png" alt="tcc-order-demo.png-4.4kB"> <br>
+订单ORDER处理完相关逻辑存入订单，然后调用ITEM处理相关逻辑并调用STOCK检查产品是否是库存不足，如果库存不足则抛出异常执行回滚操作，否则返回正确执行后续操作。整个过程是线性关系，order-&gt;item-&gt;stock <br>
+详细代码请参考该项目</p><div class="md-section-divider"></div><h2 data-anchor-id="kv8x" id="tcc-trasanction使用过程中遇到的问题">TCC-TRASANCTION使用过程中遇到的问题</h2><p data-anchor-id="gpad">1.TCC-TRASANCTION与本地事物能共同使用吗? <br>
+TCC-TRASANCTION是利用在aop中捕获一场然后利用反射依次调用入不同服务上面的取消接口来执行回滚，取消接口需要自己实现（注意幂等性），而本地事物和TCC-TRASANCTION没有直接关系。举个例子:ITEM调用STOCK，在STOCK中查询产品库存发现库存不足，抛出异常，在ORDER中捕获到异常，依次调用ORDER、ITEM、STOCK的取消方法执行数据恢复。但这里需要注意，由于tcc-trasanction执行取消或者确认操作时，跨服务调用首先会从内存中区相应xid的trasanction，然后根据该trasanction执行去更新数据库里面的值。但如果在此调用服务上加上了本地事物注解，比如ITEM上面加上@TRASANCTION的注解，那么导致会导致更新数据库失败，因为version版本号不同，抛出optimisticLock异常，导致STOCK的数据操作无法恢复。(这个需要看源码，debug调试会更清楚)。 <br>
+所以在此建议，如果服务A的方法里面调用了服务B，那么服务A的方法上面不要加@Trasanction。服务B方法里面没有再调用任何其他服务方法则可以加上@Trasanction</p><p data-anchor-id="3tjq">2.TCC-TRASANCTION在处理确认和取消操作时报异常怎么处理? <br>
+在confirmMethod和cancelMethod的方法里面抛出一场，该框架会终止后续的取消或者确认操作，这个时候需要人工接入修复该事物</p><p data-anchor-id="mxdw">3.TCC-TRASANCTION取消或确认数据步骤 <br>
+TCC-TRASANCTION取消或确认数据步骤是从最上层服务开始的，比如按照ORDER-ITEM-STOCK的顺序来执行相应的操作，由于在最上层ROOT节点，在ROOT节点AOP中才会捕获异常，所以不管是BRANCH节点哪一步抛出异常最后都会从ROOT节点开始处理。</p></div>
+</body>
+</html>

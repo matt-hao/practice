@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shiro.source.study.dao.impl.TeacherDaoImp">
+
+    <resultMap id="teacherResultMap" type="Teacher"
+               extends="com.shiro.source.study.dao.impl.UserParentDaoImpl.userResultMap"/>
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="Teacher">
+        INSERT INTO shirosourcestudy.shiro_teacher (`name`, `account`, `password`, `salt`)
+        VALUES (#{name}, #{account}, #{password}, #{salt})
+    </insert>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM shirosourcestudy.shiro_teacher
+        WHERE id = #{id}
+    </delete>
+
+    <select id="findByAccount" parameterType="String" resultMap="teacherResultMap">
+        SELECT *
+        FROM shirosourcestudy.shiro_teacher
+        WHERE account = #{account}
+    </select>
+
+    <!--根据id查询教师信息，包含了教师的角色列表和角色关联的权限列表信息-->
+    <select id="find" parameterType="long" resultMap="teacherResultMap">
+        SELECT
+            t.*,
+            r.id          AS role_id,
+            r.role_name   AS role_name,
+            r.discription AS role_description,
+            p.id          AS role_per_id,
+            p.permission  AS role_per_permission
+        FROM shirosourcestudy.shiro_teacher t
+            LEFT JOIN shirosourcestudy.shiro_user_role ur ON ur.row_id = t.id
+            LEFT JOIN shirosourcestudy.shiro_role r ON r.id = ur.role_id
+            LEFT JOIN shirosourcestudy.shiro_role_permission rp ON rp.role_id = r.id
+            LEFT JOIN shirosourcestudy.shiro_permission p ON p.id = rp.permission_id
+        WHERE ur.row_table = 'TEACHER' AND t.id = #{id}
+    </select>
+</mapper>

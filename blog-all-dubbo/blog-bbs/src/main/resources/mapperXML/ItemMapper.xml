@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mario.blog.mapper.ItemMapper">
+
+	<resultMap id="itemResultMap" type="ItemVO">
+		<id property="id" column="id" /><!-- 主键列 -->
+		<result property="itemName" column="item_name" />
+		<result property="summary" column="summary" />
+		<result property="categoryId" column="category_id" />
+		<result property="createTime" column="createTime" />
+		<result property="updateTime" column="updateTime" />
+	</resultMap>
+
+	<select id="queryItemByCategoryId" parameterType="String" resultMap="itemResultMap">
+		select * from item where category_id = #{categoryId}
+	</select>
+
+	<select id="queryItemInfoById" parameterType="_INT" resultMap="itemResultMap">
+		select * from item where id = #{id}
+	</select>
+
+</mapper>

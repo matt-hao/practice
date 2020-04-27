@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shiro.source.study.dao.impl.RoleDaoImpl">
+
+    <resultMap id="roleResultMap" type="Role">
+        <id property="id" column="id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="description" column="description"/>
+        <collection property="permissions" autoMapping="true" columnPrefix="per_" ofType="Permission"
+                    resultMap="com.shiro.source.study.dao.impl.PermissionDaoImpl.permissionResultMap"/>
+    </resultMap>
+
+    <select id="findById" parameterType="long" resultMap="roleResultMap">
+        SELECT
+            r.*,
+            p.id         AS per_id,
+            p.permission AS per_permission
+        FROM shiro_role r
+            LEFT JOIN shiro_role_permission rp ON rp.role_id = r.id
+            JOIN shiro_permission p ON p.id = rp.permission_id
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="findByName" parameterType="String" resultMap="roleResultMap">
+        SELECT
+            r.*,
+            p.id         AS per_id,
+            p.permission AS per_permission
+        FROM shiro_role r
+            LEFT JOIN shiro_role_permission rp ON rp.role_id = r.id
+            JOIN shiro_permission p ON p.id = rp.permission_id
+        WHERE r.role_name = #{roleName}
+    </select>
+</mapper>

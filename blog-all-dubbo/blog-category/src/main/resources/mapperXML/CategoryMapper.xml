@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mario.blog.mapper.CategoryMapper">
+
+	<resultMap id="categoryResultMap" type="CategoryVO">
+		<id property="uuid" column="uuid" /><!-- 主键列 -->
+		<result property="name" column="name" />
+		<result property="createTime" column="createTime" />
+	</resultMap>
+
+	<insert id="saveCategory"  keyColumn="uuid" keyProperty="uuid" parameterType="CategoryVO">
+		insert into category(uuid,name,createTime)
+		values(#{uuid},#{name}, #{createTime})
+	</insert>
+
+	<select id="queryCategory"  resultMap="categoryResultMap">
+		select * from category
+	</select>
+
+	<select id="queryCategoryById" parameterType="String" resultMap="categoryResultMap">
+		select * from category where uuid = #{uuid}
+	</select>
+</mapper>
